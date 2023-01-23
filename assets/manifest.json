@@ -1,0 +1,63 @@
+{
+  "SDKVersion": 2,
+  "Version": "0.0.0",
+  "Name": "Time Management",
+  "Author": "Brian Schwabauer",
+  "Description": "A clock & calendar plugin for the Elgato Stream Deck",
+  "Category": "Time Management",
+  "CategoryIcon": "images/pluginIcon",
+  "Icon": "images/pluginIcon",
+  "CodePath": "index.html",
+  "PropertyInspectorPath": "index.html",
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.11"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "4.1"
+  },
+  "Actions": [
+    {
+      "Icon": "images/pluginIcon",
+      "Name": "Calendar Events",
+      "SupportedInMultiActions": false,
+      "Tooltip": "",
+      "UUID": "com.brianschwabauer.streamdeck.calendar",
+      "UserTitleEnabled": false,
+      "DisableCaching": false,
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "images/calendar.key",
+          "TitleAlignment": "middle",
+          "FontSize": "15",
+          "ShowTitle": false
+        }
+      ]
+    },
+    {
+      "Icon": "images/pluginIcon",
+      "Name": "Clock & Timer",
+      "SupportedInMultiActions": false,
+      "Tooltip": "",
+      "UUID": "com.brianschwabauer.streamdeck.clock",
+      "UserTitleEnabled": false,
+      "DisableCaching": false,
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "images/clock.key",
+          "TitleAlignment": "middle",
+          "FontSize": "15",
+          "ShowTitle": false
+        }
+      ]
+    }
+  ]
+}
