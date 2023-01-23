@@ -17,7 +17,7 @@
 	export let context: string;
 
 	/** The number of ms after an event has completed when the 'done' state should be shown */
-	export let doneInterval: number = 1000 * 60 * 6;
+	export let doneInterval: number = 1000 * 60 * 10;
 
 	const interaction = listen(ACTION_ID, context);
 	const WARNING_TIME = 1000 * 60 * 5;
