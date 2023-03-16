@@ -1,19 +1,13 @@
 <script lang="ts">
-	import {
-		Plugin as StreamDeckPlugin,
-		PropertyInspector as StreamDeckPropertyInspector,
-	} from '@rweich/streamdeck-ts';
 	import Plugin from './Plugin.svelte';
 	import PropertyInspector from './PropertyInspector.svelte';
+	import { streamdeck } from './lib';
 
-	export let isPropertyInspector = false;
 	export let isOnStreamDeck = false;
-	export let plugin: StreamDeckPlugin;
-	export let propertyInspector: StreamDeckPropertyInspector;
 </script>
 
 <svelte:head>
-	{#if isPropertyInspector}
+	{#if streamdeck.isPropertyInspector}
 		<link rel="stylesheet" href="./sdpi.css" />
 		<title>Time Management Property Inspector</title>
 	{:else}
@@ -21,8 +15,8 @@
 	{/if}
 </svelte:head>
 
-{#if isPropertyInspector}
-	<PropertyInspector pi={propertyInspector} />
+{#if streamdeck.isPropertyInspector}
+	<PropertyInspector />
 {:else}
 	{#if !isOnStreamDeck}
 		<div class="controls">
@@ -30,7 +24,7 @@
 		</div>
 	{/if}
 	<div class="sdplugin-wrapper">
-		<Plugin {plugin} {isOnStreamDeck} />
+		<Plugin {isOnStreamDeck} />
 	</div>
 {/if}
 

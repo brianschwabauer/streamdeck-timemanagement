@@ -1,17 +1,16 @@
 <script lang="ts">
-	import type { PropertyInspector } from '@rweich/streamdeck-ts';
 	import { SETTINGS_PAGES } from './settings';
-
-	export let pi: PropertyInspector;
+	import { streamdeck } from './lib';
 
 	let settingsPage: typeof SETTINGS_PAGES[keyof typeof SETTINGS_PAGES] | undefined;
-	pi.on('websocketOpen', (e) => {
+	const init = streamdeck.init$;
+	$: if ($init) {
 		settingsPage = Object.entries(SETTINGS_PAGES).find(
-			([action]) => action === pi.actionInfo?.action,
+			([action]) => action === streamdeck.actionInfo?.action,
 		)?.[1];
-	});
+	}
 </script>
 
 {#if settingsPage}
-	<svelte:component this={settingsPage} {pi} />
+	<svelte:component this={settingsPage} />
 {/if}

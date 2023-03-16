@@ -57,9 +57,6 @@ export function listen(action: string, context: string): Readable<InteractionEve
 	});
 }
 
-/** A store that emits a url when a URL should be opened by the stream deck */
-export const openURL = writable<string | undefined>(undefined);
-
 let LONG_PRESS = 500;
 let CLICK_THRESHOLD = 200;
 let clickTimer: ReturnType<typeof setTimeout> | undefined;

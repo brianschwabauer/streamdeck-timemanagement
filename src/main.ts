@@ -1,54 +1,35 @@
-import { Streamdeck } from '@rweich/streamdeck-ts';
 import App from './App.svelte';
+import { initStreamDeck } from './lib';
 
-let isPropertyInspector = false;
 const isOnStreamDeck = document.location.protocol === 'file:';
-const emptyLogger = {
-	debug: () => {},
-	error: () => {},
-	info: () => {},
-	trace: () => {},
-	warn: () => {},
-};
-const plugin = new Streamdeck().plugin();
-const propertyInspector = new Streamdeck().propertyinspector();
-const initApp = () =>
-	new App({
+let app: InstanceType<typeof App>;
+const initApp = (
+) => {
+	if (app) app.$destroy();
+	app = new App({
 		target: document.body,
 		props: {
 			isOnStreamDeck,
-			isPropertyInspector,
-			plugin,
-			propertyInspector,
 		},
 	});
-
+};
 if (!isOnStreamDeck) initApp();
 
 (window as any).connectElgatoStreamDeckSocket = (
-	inPort: string,
+	inPort: number,
 	inPluginUUID: string,
-	inRegisterEvent: string,
+	inRegisterEvent: 'registerPropertyInspector' | 'registerPlugin',
 	inInfo: string,
 	inActionInfo?: string | undefined,
 ) => {
-	isPropertyInspector = inRegisterEvent === 'registerPropertyInspector';
+	console.log(
+		'connectElgatoStreamDeckSocket',
+		inPort,
+		inPluginUUID,
+		inRegisterEvent,
+		inInfo,
+		inActionInfo,
+	);
+	initStreamDeck(inPort, inPluginUUID, inRegisterEvent, inInfo, inActionInfo);
 	initApp();
-	if (isPropertyInspector) {
-		propertyInspector.createStreamdeckConnector()(
-			inPort,
-			inPluginUUID,
-			inRegisterEvent,
-			inInfo,
-			inActionInfo,
-		);
-	} else {
-		plugin.createStreamdeckConnector()(
-			inPort,
-			inPluginUUID,
-			inRegisterEvent,
-			inInfo,
-			inActionInfo,
-		);
-	}
 };

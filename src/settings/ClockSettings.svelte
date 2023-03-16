@@ -3,27 +3,32 @@
 </script>
 
 <script lang="ts">
-	import type { PropertyInspector } from '@rweich/streamdeck-ts';
 	import { onMount } from 'svelte';
-
-	export let pi: PropertyInspector;
+	import { getSettings, setSettings, streamdeck } from '../lib';
 
 	let countdownTime = 60 * 30;
+	const streamdeckEvents = streamdeck.event$;
 
 	// Update the calendar data when the global settings are updated
-	pi.on('didReceiveSettings', (e) => {
-		const settings = e.settings || ({} as any);
-		countdownTime = settings.countdownTime || 60 * 30;
-	});
-	pi.on('websocketOpen', () => {
-		if (pi.pluginUUID) pi.getSettings(pi.pluginUUID);
-	});
+	$: if ($streamdeckEvents) {
+		const e = $streamdeckEvents;
+		const type = e.event;
+		if (type === 'didReceiveSettings') {
+			const settings = e.payload.settings || ({} as any);
+			countdownTime = settings.countdownTime || 60 * 30;
+		} else if (type === 'websocketOpen') {
+			if (streamdeck.uuid) getSettings(streamdeck.uuid);
+		}
+	}
+
 	onMount(() => {
-		if (pi.pluginUUID) pi.getSettings(pi.pluginUUID);
+		if (streamdeck.uuid) getSettings(streamdeck.uuid);
 	});
 
 	function updateSettings() {
-		if (pi.pluginUUID) pi.setSettings(pi.pluginUUID, { countdownTime });
+		if (streamdeck.uuid) {
+			setSettings({ context: streamdeck.uuid, payload: { countdownTime } });
+		}
 	}
 </script>
 

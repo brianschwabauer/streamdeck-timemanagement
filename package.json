@@ -13,8 +13,10 @@
     "clean": "rimraf ./dist/*"
   },
   "dependencies": {
+    "@rweich/streamdeck-events": "^5.0.1",
     "@rweich/streamdeck-ts": "^4.0.0",
-    "ical.js": "^1.5.0"
+    "ical.js": "^1.5.0",
+    "rxjs": "^7.8.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.0.2",

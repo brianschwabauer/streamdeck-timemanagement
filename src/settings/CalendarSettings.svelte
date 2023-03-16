@@ -3,32 +3,42 @@
 </script>
 
 <script lang="ts">
-	import type { PropertyInspector } from '@rweich/streamdeck-ts';
-	import { type Calendar, calendar, maybeUpdateCalendarEvents } from './../lib';
-
-	export let pi: PropertyInspector;
+	import {
+		type Calendar,
+		calendar,
+		maybeUpdateCalendarEvents,
+		streamdeck,
+		getGlobalSettings,
+		setGlobalSettings,
+	} from './../lib';
 
 	let url: string;
 	let checkEvery: number;
 	let includeDaysBefore: number;
 	let includeDaysAfter: number;
 	let globalSettings: { calendar: Calendar } | undefined;
+	const streamdeckEvents = streamdeck.event$;
 
 	// Update the calendar data when the global settings are updated
-	pi.on('didReceiveGlobalSettings', (e) => {
-		globalSettings = e.settings as any;
-		const calendarData = globalSettings?.calendar;
-		if (!calendarData) return;
-		if (!$calendar) $calendar = calendarData;
-		if (calendarData.url) maybeUpdateCalendarEvents($calendar);
-	});
-	pi.on('websocketOpen', () => {
-		if (pi.pluginUUID) pi.getGlobalSettings(pi.pluginUUID);
-	});
-	if (pi.pluginUUID) pi.getGlobalSettings(pi.pluginUUID);
+	$: if ($streamdeckEvents) {
+		const e = $streamdeckEvents;
+		const type = e.event;
+		if (type === 'didReceiveGlobalSettings') {
+			globalSettings = e.payload.settings as any;
+			const calendarData = globalSettings?.calendar;
+			if (!!calendarData) {
+				if (!$calendar) $calendar = calendarData;
+				if (calendarData.url) maybeUpdateCalendarEvents($calendar);
+			}
+		} else if (type === 'websocketOpen') {
+			getGlobalSettings(streamdeck.uuid);
+		}
+	}
+	if (streamdeck.uuid) getGlobalSettings(streamdeck.uuid);
 
-	$: if (pi.pluginUUID && $calendar)
-		pi.setGlobalSettings(pi.pluginUUID, { calendar: $calendar });
+	$: if (streamdeck.uuid && $calendar) {
+		setGlobalSettings({ context: streamdeck.uuid, payload: { calendar: $calendar } });
+	}
 	$: if ($calendar) {
 		url = $calendar.url;
 		checkEvery = Math.max(60, $calendar.checkEvery ?? 300);
@@ -45,7 +55,7 @@
 			includeDaysBefore,
 			checkEvery: Math.max(60, checkEvery),
 		};
-		if (!pi.pluginUUID) return;
+		if (!streamdeck.uuid) return;
 	}
 </script>
 

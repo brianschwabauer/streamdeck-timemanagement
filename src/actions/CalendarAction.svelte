@@ -7,7 +7,7 @@
 		calendar,
 		type CalendarEvent,
 		listen,
-		openURL,
+		openUrl,
 		onInterval,
 		timeUntil,
 	} from '../lib';
@@ -92,7 +92,7 @@
 		const mapsURL = !event.location
 			? ''
 			: `https://www.google.com/maps/search/${event.location}`;
-		$openURL = event.url || mapsURL;
+		openUrl(event.url || mapsURL);
 	}
 	$: if ($interaction && $interaction.type === 'click') {
 		showMeta = !showMeta;

@@ -1,61 +1,66 @@
 <script lang="ts">
 	import type { Action } from 'svelte/action';
-	import type { Plugin } from '@rweich/streamdeck-ts';
 	import { type ComponentType } from 'svelte';
 	import {
 		event,
-		openURL,
 		type Calendar,
 		calendar,
 		maybeUpdateCalendarEvents,
 		onInterval,
+		getGlobalSettings,
+		getSettings,
+		setGlobalSettings,
 	} from './lib';
 	import { ACTIONS } from './actions';
+	import { streamdeck, setImage } from './lib';
 
-	export let plugin: Plugin;
 	export let isOnStreamDeck: boolean;
-	let initialized = false;
+	const initialized = streamdeck.init$;
+	const streamdeckEvents = streamdeck.event$;
 	let activeActions: { action: string; context: string; component?: ComponentType }[] =
 		[];
 
 	// Sends the current SVG image to the stream deck for the given context
 	const updateImage = (element: HTMLElement, context: string) => {
-		if (!initialized || !element.innerHTML) return;
+		if (!$initialized || !element.innerHTML) return;
 		const image = `data:image/svg+xml;base64,${btoa(element.innerHTML)}`;
-		plugin.setImage(image, context);
+		setImage(context, image);
 	};
 
 	// Handle plugin events
-	plugin.on('websocketOpen', (e) => {
-		initialized = true;
-		if (plugin.pluginUUID) plugin.getGlobalSettings(plugin.pluginUUID);
-	});
-	plugin.on('keyDown', (e) => {
-		$event = { type: 'keydown', action: e.action, context: e.context, detail: e };
-	});
-	plugin.on('keyUp', (e) => {
-		$event = { type: 'keyup', action: e.action, context: e.context, detail: e };
-	});
-	plugin.on('willAppear', (e) => {
-		if (activeActions.some((a) => a.context === e.context)) return;
-		activeActions.push({
-			action: e.action,
-			context: e.context,
-			component: ACTIONS[e.action as keyof typeof ACTIONS],
-		});
-		plugin.getSettings(e.context);
-		activeActions = activeActions;
-	});
-	$: if ($openURL) plugin.openUrl($openURL);
-
-	// Update the calendar data when the global settings are updated
-	plugin.on('didReceiveGlobalSettings', (e) => {
-		const calendarData: Calendar = (e?.settings as any)?.calendar;
-		if (!calendarData) return;
-		if (($calendar?.fetched || 0) >= (calendarData.fetched || 0)) return;
-		$calendar = calendarData;
-		if (calendarData.url) maybeUpdateCalendarEvents($calendar);
-	});
+	$: if ($streamdeckEvents) {
+		const e = $streamdeckEvents;
+		const type = e.event;
+		if (type === 'websocketOpen') {
+			getGlobalSettings(streamdeck.uuid);
+		} else if (type === 'keyDown') {
+			$event = {
+				type: 'keydown',
+				action: e.action,
+				context: e.context,
+				detail: e as any,
+			};
+		} else if (type === 'keyUp') {
+			$event = { type: 'keyup', action: e.action, context: e.context, detail: e as any };
+		} else if (type === 'willAppear') {
+			if (!activeActions.some((a) => a.context === e.context)) {
+				activeActions.push({
+					action: e.action,
+					context: e.context,
+					component: ACTIONS[e.action as keyof typeof ACTIONS],
+				});
+				getSettings(e.context);
+				activeActions = activeActions;
+			}
+		} else if (type === 'didReceiveGlobalSettings') {
+			// Update the calendar data when the global settings are updated
+			const calendarData: Calendar = (e?.payload?.settings as any)?.calendar;
+			if (calendarData && ($calendar?.fetched || 0) < (calendarData.fetched || 0)) {
+				$calendar = calendarData;
+				if (calendarData.url) maybeUpdateCalendarEvents($calendar);
+			}
+		}
+	}
 
 	// Handle local developement when not on stream deck
 	if (!isOnStreamDeck) {
@@ -76,8 +81,8 @@
 
 	// Update the settings when the calendar data is updated
 	$: if (!isOnStreamDeck) localStorage.setItem('calendar', JSON.stringify($calendar));
-	$: if (isOnStreamDeck && plugin.pluginUUID) {
-		plugin.setGlobalSettings(plugin.pluginUUID, { calendar: $calendar });
+	$: if (isOnStreamDeck && streamdeck.uuid && $calendar) {
+		setGlobalSettings({ context: streamdeck.uuid, payload: { calendar: $calendar } });
 	}
 
 	// Check every 30 seconds if the calendar data should be updated
